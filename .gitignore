@@ -1,1 +1,3 @@
-out
+*.swp
+build
+disk.img
