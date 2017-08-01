@@ -70,6 +70,24 @@ void terminal_scroll_down()
     }
 }
 
+// Places a character on the screen in the current buffer position
+void terminal_putc(char c)
+{
+        terminal_buffer[terminal_buffer_pos++] = make_char(c, terminal_color);
+}
+
+// Places a character on the screen then reverts the buffer position
+void terminal_putc_at(char c, uint8_t row, uint8_t column)
+{
+    if((row < TERMINAL_HEIGHT) && (column < TERMINAL_WIDTH))
+    {
+        uint16_t buffer_pos = terminal_buffer_pos;
+        terminal_buffer_pos = row * TERMINAL_WIDTH + column;
+        terminal_putc(c);
+        terminal_buffer_pos = buffer_pos;
+    }
+}
+
 // Print a string to the terminal
 void terminal_print(char* str)
 {
@@ -88,4 +106,47 @@ void terminal_print(char* str)
     }
 }
 
+// Prints a string at a provided location then reverts the buffer position
+void terminal_print_at(char* str, uint8_t row, uint8_t column)
+{
+    if((row < TERMINAL_HEIGHT) && (column < TERMINAL_WIDTH))
+    {
+        uint16_t buffer_pos = terminal_buffer_pos;
+        terminal_buffer_pos = row * TERMINAL_WIDTH + column;
+        terminal_print(str);
+        terminal_buffer_pos = buffer_pos;
+    }
+}
 
+// Print a single byte in hex
+void terminal_print_byte(uint8_t c)
+{
+    terminal_print("0x");
+    
+    char upper = "0123456789abcdef"[(uint8_t)(c >> 4)];
+    char lower = "0123456789abcdef"[(uint8_t)(c & 0x0f)];
+
+    terminal_buffer[terminal_buffer_pos++] = make_char(upper, terminal_color);
+    terminal_buffer[terminal_buffer_pos++] = make_char(lower, terminal_color);
+}
+
+// Prints a byte in hex at the provided position then resets the buffer position
+void terminal_print_byte_at(uint8_t c, uint8_t row, uint8_t column)
+{
+    if((row < TERMINAL_HEIGHT) && (column < TERMINAL_WIDTH))
+    {
+        uint16_t buffer_pos = terminal_buffer_pos;
+        terminal_buffer_pos = row * TERMINAL_WIDTH + column;
+        terminal_print_byte(c);
+        terminal_buffer_pos = buffer_pos;
+    }
+}
+
+// Sets the buffer position when given a row/column
+void terminal_set_pos(uint8_t row, uint8_t column)
+{
+    if((row < TERMINAL_HEIGHT) && (column < TERMINAL_WIDTH))
+    {
+        terminal_buffer_pos = row * TERMINAL_WIDTH + column;
+    }
+}

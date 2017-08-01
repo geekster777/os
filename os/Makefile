@@ -3,7 +3,7 @@ OS_IMG=$(BUILD_DIR)/os.bin
 LINKER=linker.ld
 
 CC = i686-elf-gcc
-CFLAGS = -std=gnu99 -ffreestanding -O2 -Wall -Wextra
+CFLAGS = -g -std=gnu99 -ffreestanding -O2 -Wall -Wextra
 CLINKERFLAGS = -ffreestanding -O2 -nostdlib
 
 OS_C_SRCS := $(wildcard *.c)

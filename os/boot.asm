@@ -19,9 +19,19 @@ _start:
     mov fs, eax
     mov gs, eax
     mov ss, eax
-    
+
     ; Initialize the stack
     mov esp, stack_top
+    
+    ; Initialize the interrupt data table
+    lidt [idt_ptr]
+    mov eax, idt_ptr
+    push eax
+    extern interrupt_init
+    call interrupt_init
+
+    extern keyboard_init
+    sti
     
     ; Call the main C kernel code
     extern kernel_main
@@ -32,3 +42,7 @@ _start:
     hlt
     jmp .hang
 .end:
+
+idt_ptr:
+    dw 0x800  ; 256 interrupts
+    dd 0x1000 ; Interrupt table location
