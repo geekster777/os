@@ -15,13 +15,13 @@ bootloader:
 bootdisk: bootloader
 	dd if=/dev/zero of=$(DISK_IMG) bs=512 count=2880
 	dd conv=notrunc if=$(BOOTLOADER) of=$(DISK_IMG) bs=512 count=1 seek=0
-	dd conv=notrunc if=$(OS) of=$(DISK_IMG) bs=512 count=80 seek=1
+	dd conv=notrunc if=$(OS) of=$(DISK_IMG) bs=512 count=150 seek=1
 
 run:
-	qemu-system-i386 -machine q35 -fda $(DISK_IMG) -gdb tcp::26000
+	qemu-system-i386 -machine q35 -fda $(DISK_IMG) -gdb tcp::26000 -localtime
 
 debug:
-	qemu-system-i386 -machine q35 -fda $(DISK_IMG) -gdb tcp::26000 -S
+	qemu-system-i386 -machine q35 -fda $(DISK_IMG) -gdb tcp::26000 -localtime -S
 
 clean:
 	make -C bootloader clean

@@ -28,6 +28,11 @@ enum vga_color
     VGA_COLOR_WHITE=15
 };
 
+typedef struct terminal_pos {
+    uint8_t row;
+    uint8_t column;
+} terminal_pos;
+
 /**
   * Name:   terminal_init
   * Args:   None
@@ -67,18 +72,6 @@ void terminal_clear_screen();
 void terminal_putc(char c);
 
 /**
-  * Name:   terminal_putc_at
-  * Args:   char    - The character to print
-  *         uint8_t - The row to place the character in
-  *         uint8_t - The column to place the character in
-  * Return: None
-  *
-  * Prints a character in a provided position without changing the current 
-  * cursor position
-  */
-void terminal_putc_at(char c, uint8_t row, uint8_t col);
-
-/**
   * Name:   terminal_print
   * Args:   char* str - The string to print to the screen
   * Return: None
@@ -86,18 +79,6 @@ void terminal_putc_at(char c, uint8_t row, uint8_t col);
   * Prints a string at the current location of the screen. Ignores newlines
   */
 void terminal_print(char* str);
-
-/**
-  * Name:   terminal_print_at
-  * Args:   char*   - The character to print
-  *         uint8_t - The row to place the character in
-  *         uint8_t - The column to place the character in
-  * Return: None
-  *
-  * Prints a string in a provided position without changing the current 
-  * cursor position
-  */
-void terminal_print_at(char* str, uint8_t row, uint8_t col);
 
 /**
   * Name:   terminal_print_byte
@@ -109,18 +90,6 @@ void terminal_print_at(char* str, uint8_t row, uint8_t col);
 void terminal_print_byte(uint8_t c);
 
 /**
-  * Name:   terminal_print_byte_at
-  * Args:   uint8_t - The character to print
-  *         uint8_t - The row to place the character in
-  *         uint8_t - The column to place the character in
-  * Return: None
-  *
-  * Prints a byte in hex in a provided position without changing the current 
-  * cursor position
-  */
-void terminal_print_byte_at(uint8_t c, uint8_t row, uint8_t col);
-
-/**
   * Name:   terminal_set_pos
   * Args:   uint8_t - The row to set the cursor to
   *         uint8_t - The column to set the cursor to
@@ -129,5 +98,14 @@ void terminal_print_byte_at(uint8_t c, uint8_t row, uint8_t col);
   * Sets the current cursor to a row/column coordinate
   */
 void terminal_set_pos(uint8_t row, uint8_t column);
+
+/**
+  * Name:   terminal_get_pos
+  * Args:   None
+  * Return: terminal_pos - A tuple containing the current cursor row/column
+  *
+  * Returns the current position of the terminal cursor
+  */
+terminal_pos terminal_get_pos();
 
 #endif

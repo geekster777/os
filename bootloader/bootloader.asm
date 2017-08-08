@@ -1,6 +1,7 @@
 org 0x7c00
 bits 16
 %define tracks_per_read 3
+%define total_reads 10
 start: jmp boot
 
 floppy_reads:
@@ -117,7 +118,7 @@ move_kernel_code:
     
     ; Check if we've read the floppy enough times
     mov cl,   [floppy_reads]
-    cmp cl,   10     ; Stop reading after 10 loads (~200kb)
+    cmp cl,   total_reads  ; Stop reading after so many reads
     je exit_bootloader
     add cl,   1      ; Increment floppy reads
     mov [floppy_reads], cl

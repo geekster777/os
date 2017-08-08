@@ -8,7 +8,7 @@ static idt_entry* entries;
 // This is the table of function pointers to be accessed in isr_stubs.asm
 void ( *__isr_table[256] )( uint16_t vector);
 
-void set_idt_entry(uint32_t entry_num, void (*func)(void));
+void set_idt_entry(uint16_t entry_num, void (*func)(void));
 
 void default_handler(uint16_t vector)
 {
@@ -98,7 +98,7 @@ void interrupt_init(idt* idt_ptr)
 }
 
 // Registers the supplied function to be called when the interrupt is triggered
-void interrupt_register(uint32_t entry_num, void (*func)(uint16_t))
+void interrupt_register(uint16_t entry_num, void (*func)(uint16_t))
 {
     if(entry_num < entries_size)
     {
@@ -107,7 +107,7 @@ void interrupt_register(uint32_t entry_num, void (*func)(uint16_t))
 }
 
 // Sets an entry in the IDT, and points it to a function (likely an ISR stub)
-void set_idt_entry(uint32_t entry_num, void (*func)(void))
+void set_idt_entry(uint16_t entry_num, void (*func)(void))
 {
     if(entry_num >= entries_size) return;
     

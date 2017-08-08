@@ -78,6 +78,7 @@ __inl:
 ; 
 ; Disables interrupts by running the cli command
 ; 
+global __cli
 __cli:
     cli
     ret
@@ -87,6 +88,7 @@ __cli:
 ; 
 ; Enables interrupts by running the sti command
 ; 
+global __sti
 __sti:
     sti
     ret
