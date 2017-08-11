@@ -98,7 +98,7 @@ unsigned char shift_scan_codes[128] =
 };
 
 // Handles all keyboard interrupts, and triggers appropriate callbacks
-void keyboard_interrupt_handler(uint16_t vector)
+void keyboard_interrupt_handler(uint32_t vector, uint32_t err)
 {
     uint8_t code = __inb(0x60);
     unsigned char* codes; 

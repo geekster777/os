@@ -18,7 +18,7 @@ uint16_t make_char(char letter, uint8_t color)
 // Helper function to create a color integer from an fg and bg
 uint8_t make_color(enum vga_color background, enum vga_color foreground)
 {
-    return background << 4 | foreground;
+    return background << 4 | (foreground & 0xf);
 }
 
 // Initialize the terminal with a color and clear the screen

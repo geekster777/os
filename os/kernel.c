@@ -5,76 +5,170 @@
 #include "terminal.h"
 #include "keyboard.h"
 #include "stdio.h"
+#include "scheduler.h"
+#include "asm_utils.h"
 
-uint8_t color = 0;
-
-void key_pressed(char key)
-{
-    terminal_pos pos = terminal_get_pos();
-    terminal_set_pos(0,0);
-    terminal_print("Pressed: ");
-    if(key != '\n')
-    {
-        terminal_putc(key);
-        terminal_putc(' ');
-    }
-    terminal_set_pos(pos.row, pos.column);
-}
-
-void key_released(char key)
-{
-    terminal_pos pos = terminal_get_pos();
-    terminal_set_pos(0,0);
-    terminal_print("Released: ");
-    if(key != '\n')
-    {
-        terminal_putc(key);
-    }
-    terminal_set_pos(pos.row, pos.column);
-}
-
-void change_color()
-{
-    terminal_set_color(VGA_COLOR_BLACK, ++color % 16);
-}
+volatile uint8_t kill = 0;
 
 void print_clock()
 {
-    // Set the position and color of the clock
+    // Set the position of the clock
     terminal_pos pos = terminal_get_pos();
     terminal_set_pos(0,60);
-    terminal_set_color(VGA_COLOR_BLACK, VGA_COLOR_WHITE);
 
     // Format and print the date/time
     datetime date = clock_get_datetime();
     printf("%02d/%02d/%04d %02d:%02d:%02d", (int)date.month, (int)date.day, 
             (int)date.year, (int)date.hour, (int)date.minute, (int)date.second);
 
-    // Reset the position and color to before
+    // Reset the position to before
     terminal_set_pos(pos.row, pos.column);
-    terminal_set_color(VGA_COLOR_BLACK, color);
+}
 
+// Simple background task to run
+void print_pid_and_wait()
+{
+    int pid = scheduler_get_pid();
+    int count = 0;
+
+    while(1)
+    {
+        // Print the count
+        count++;
+        terminal_pos pos = terminal_get_pos();
+        __cli();
+        terminal_set_pos(pid, 70);
+        printf("Count: %02d", count);
+        terminal_set_pos(pos.row, pos.column);
+        __sti();
+
+        clock_delay(50*pid);
+        
+        // Lets the user end the process from the game process
+        if(kill == pid)
+            break;
+    }
+    
+    // Reset the kill variable to the idle process
+    kill = 0;
+
+    // Clear the count
+    terminal_pos pos = terminal_get_pos();
+    __cli();
+    terminal_set_pos(pid, 70);
+    printf("         ");
+    terminal_set_pos(pos.row, pos.column);
+    __sti();
+}
+
+// Simple game process for the user to play while watching background processes
+void game()
+{
+    // Initialize game variables
+    uint8_t num = 0;
+    uint8_t solved = 1;
+    uint8_t guess = 0;
+
+    // Allow the user to type to the console until the scheduler ends us
+    terminal_clear_screen();
+    terminal_set_pos(1,0);
+    while(1)
+    {
+        // Reset the game
+        if(solved)
+        {
+            num = clock_random() % 256;
+            printf("I'm thinking of a number between 0 and 256. Guess it!\n");
+            solved = 0;
+        }
+        
+        // Read and evaluate the keyboard input
+        char key = keyboard_next_key();
+
+        // Increment the guess
+        if(key >= '0' && key <= '9')
+        {
+            guess *= 10;
+            guess += key - '0';
+            terminal_putc(key);
+        }
+        // Decrement the guess
+        else if(key == '\b')
+        {
+            guess /= 10;
+            terminal_putc('\b');
+        }
+        // Enter a guess
+        else if(key == '\n')
+        {
+            terminal_putc(key);
+
+            if(guess > num)
+            {
+                printf("Too high!\n");
+                guess = 0;
+            }
+            else if(guess < num)
+            {
+                printf("Too low!\n");
+                guess = 0;
+            }
+            else
+            {
+                printf("You won! Play again? (press n to quit)\n");
+                solved = 1;
+                key = keyboard_next_key();
+
+                // Quit
+                if(key == 'n' || key == 'N')
+                    break;
+                else
+                    terminal_clear_screen();
+            }
+        }
+        // Create a new task
+        else if(key == 'N')
+        {
+            scheduler_insert(print_pid_and_wait);
+        }
+        // Let a particular print_pid_and_wait function end
+        else if(key == 'R')
+        {
+            if(guess < 100)
+            {
+                kill = guess;
+                guess = 0;
+            }
+        }
+    }
+
+    printf("You quit :(\n");
+}
+
+void schedule()
+{
+    scheduler_switch_context();
 }
 
 void kernel_main(void)
 {
     // Initialize the components
+    scheduler_init();
     clock_init();
     terminal_init();
     keyboard_init();
 
     // Initialize callbacks
-    keyboard_register_keypressed(&key_pressed);
-    keyboard_register_keyreleased(&key_released);
-    clock_register_callback(1000, change_color);
     clock_register_callback(250, print_clock);
+    clock_register_callback(10, schedule);
     
-    print_clock();
+    for(int i = 0; i < 10; i++)
+        scheduler_insert(print_pid_and_wait);
+    scheduler_insert(game);
 
-    // Allow the user to type to the console
-    terminal_set_pos(1,0);
-    while(1)
-    {
-        terminal_putc(keyboard_next_key());
-    }
+    print_clock();
+    
+    __sti();
+
+    while(1);
 }

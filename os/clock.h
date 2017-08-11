@@ -35,6 +35,16 @@ void clock_init();
 datetime clock_get_datetime();
 
 /**
+  * Name:   clock_random
+  * Args:   None
+  * Return: uint32_t - A pseudo random 32 bit number. 
+  *
+  * Returns a pseudo random 32 bit number. To make it a range, mod the number 
+  * by the range you'd like.
+  */
+uint32_t clock_random();
+
+/**
   * Name:   clock_delay
   * Args:   uint32_t - The number of milliseconds to wait for
   * Return: None

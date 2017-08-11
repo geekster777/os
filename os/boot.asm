@@ -2,9 +2,10 @@ bits 32
 
 section .bss
 ; Reserve space for the stack
+global stack_top
 align 4
 stack_bottom:
-    resb 16384
+    resb 0x10000
 stack_top:
 
 section .text
@@ -30,13 +31,9 @@ _start:
     extern interrupt_init
     call interrupt_init
 
-    extern keyboard_init
-    sti
-    
     ; Call the main C kernel code
     extern kernel_main
     call kernel_main
-    cli
 
 .hang:
     hlt

@@ -92,3 +92,16 @@ global __sti
 __sti:
     sti
     ret
+
+;
+; Name:   __eflags
+; Args:   None
+; Return: int - The eflags register contents
+;
+; Reads and returns the contents of the eflags register
+;
+global __eflags
+__eflags:
+    pushf
+    pop eax
+    ret

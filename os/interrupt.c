@@ -1,4 +1,5 @@
 #include "terminal.h"
+#include "stdio.h"
 #include "asm_utils.h"
 #include "interrupt.h"
 
@@ -6,11 +7,11 @@ static uint16_t entries_size;
 static idt_entry* entries;
 
 // This is the table of function pointers to be accessed in isr_stubs.asm
-void ( *__isr_table[256] )( uint16_t vector);
+void ( *__isr_table[256] )( uint32_t vector, uint32_t err );
 
 void set_idt_entry(uint16_t entry_num, void (*func)(void));
 
-void default_handler(uint16_t vector)
+void default_handler(uint32_t vector, uint32_t err)
 {
     if( vector >= 0x20 && vector < 0x30 )
     {
@@ -27,6 +28,12 @@ void default_handler(uint16_t vector)
         // Tell the PIC to re-enable interrupts
         __outb(0x20, 0x20); 
     }
+}
+
+void error_handler(uint32_t vector, uint32_t err)
+{
+    terminal_set_pos(3,0);
+    printf("Oops? Vec: %d Err: %d", vector, err);
 }
 
 // Initializes the PIC to allow interrupts
@@ -91,14 +98,17 @@ void interrupt_init(idt* idt_ptr)
     for(uint32_t i=0; i<entries_size; i++)
     {
         set_idt_entry(i, __isr_stub_table[i]);
-        interrupt_register(i, default_handler);
+        if(i >= 0x20 && i <= 0x40)
+            interrupt_register(i, default_handler);
+        else
+            interrupt_register(i, error_handler);
     }
 
     init_pic();
 }
 
 // Registers the supplied function to be called when the interrupt is triggered
-void interrupt_register(uint16_t entry_num, void (*func)(uint16_t))
+void interrupt_register(uint16_t entry_num, void (*func)(uint32_t, uint32_t))
 {
     if(entry_num < entries_size)
     {

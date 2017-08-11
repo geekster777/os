@@ -20,9 +20,7 @@ void __outl(int port, int value);
 
 /**
   * Name:   __inb, __inw, __inl
-  *
   * Args:   int - The port to read from
-  *
   * Return: int - The value read from the port
   *
   * Read value from a port for port-based io
@@ -32,17 +30,30 @@ int __inw(int port);
 int __inl(int port);
 
 /**
-  * Name: cli
+  * Name:   __cli
+  * Args:   None
+  * Return: None
   *
   * Disables interrupts by running the cli command
   */
 void __cli();
 
 /**
-  * Name: sti
+  * Name:   __sti
+  * Args:   None
+  * Return: None
   *
   * Enables interrupts by running the sti command
   */
 void __sti();
+
+/**
+  * Name:   __eflags
+  * Args:   None
+  * Return: The eflags register contents
+  *
+  * Reads the eflags register and returns it
+  */
+int __eflags();
 
 #endif

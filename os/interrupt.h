@@ -49,7 +49,7 @@ void interrupt_init(idt* idt_ptr);
   *
   * Registers a function to be called everytime the interrupt is triggered
   */
-void interrupt_register(uint16_t entry_num, void (*func)(uint16_t));
+void interrupt_register(uint16_t entry_num, void (*func)(uint32_t, uint32_t));
 
 /**
   * Name:   interrupt_set_mask

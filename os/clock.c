@@ -7,7 +7,7 @@
 #define CALLBACK_VECTOR_SIZE 256
 
 // We can handle about 58 days of uptime before the ticks overflow
-volatile uint32_t ticks = 0;
+uint32_t volatile ticks;
 
 typedef struct clock_callback {
     uint32_t ticks;
@@ -17,7 +17,7 @@ typedef struct clock_callback {
 
 clock_callback callback_vector[CALLBACK_VECTOR_SIZE];
 
-void clock_interrupt_handler(uint16_t vector)
+void clock_interrupt_handler(uint32_t vector, uint32_t err)
 {
     ticks++;
 
@@ -45,6 +45,8 @@ void clock_interrupt_handler(uint16_t vector)
 
 void clock_init()
 {
+    ticks = 0;
+
     // Zero the callback vector
     for(uint16_t i = 0; i < CALLBACK_VECTOR_SIZE; i++)
     {
@@ -67,7 +69,9 @@ datetime clock_get_datetime()
 {
     datetime current;
     
-    __cli();
+    uint8_t interrupts_enabled = __eflags() & 0x200;
+
+    if(interrupts_enabled) __cli();
 
     // Wait until the RTC is done updating
     do
@@ -118,15 +122,21 @@ datetime clock_get_datetime()
 
     current.year += century*100;
     
-    __sti();
+    if(interrupts_enabled) __sti();
 
     return current;
 }
 
+uint32_t clock_random()
+{
+    // Multiply the ticks by a large prime number
+    return ticks * 14243;
+}
+
 void clock_delay(uint32_t ms)
 {
-    uint32_t future = ticks + TICKS(ms);
-    while(future < ticks);
+    uint32_t volatile future = ticks + TICKS(ms);
+    while(ticks < future);
     return;
 }
 
